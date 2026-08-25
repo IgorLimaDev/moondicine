@@ -6,6 +6,18 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+import java.util.Properties
+import java.io.InputStreamReader
+
+// Load keystore properties for signing
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { stream ->
+        keystoreProperties.load(InputStreamReader(stream, Charsets.UTF_8))
+    }
+}
+
 android {
     namespace = "com.moondicine.app"
     compileSdk = 34
@@ -30,6 +42,21 @@ android {
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_7CyC5_lwqo86rqOhzCB0lg_dx3wqugn\"")
     }
 
+    signingConfigs {
+        create("release") {
+            // CI: use environment variables | Local: use keystore.properties
+            val ksFile = System.getenv("KEYSTORE_FILE") ?: keystoreProperties.getProperty("storeFile", "")
+            val ksStorePass = System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword", "")
+            val ksKeyAlias = System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias", "")
+            val ksKeyPass = System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword", "")
+
+            storeFile = file(ksFile)
+            storePassword = ksStorePass
+            keyAlias = ksKeyAlias
+            keyPassword = ksKeyPass
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -38,6 +65,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isMinifyEnabled = false
