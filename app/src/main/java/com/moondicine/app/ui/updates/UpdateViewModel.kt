@@ -91,4 +91,9 @@ class UpdateViewModel @Inject constructor(
         updateRepository.resetDownloadState()
         _uiState.value = _uiState.value.copy(isDownloading = false, downloadProgress = 0, isDownloaded = false, downloadError = null)
     }
+
+    fun dismissUpdate() {
+        updateRepository.resetDownloadState()
+        _uiState.value = UpdateUiState()
+    }
 }

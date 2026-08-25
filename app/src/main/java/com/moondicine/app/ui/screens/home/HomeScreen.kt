@@ -259,7 +259,10 @@ fun HomeScreen(
         // Show update dialog
         if (showUpdateDialog) {
             UpdateDialog(
-                onDismiss = { showUpdateDialog = false },
+                onDismiss = {
+                    showUpdateDialog = false
+                    updateViewModel.dismissUpdate()
+                },
                 onOpenRelease = {
                     updateUiState.updateInfo?.releaseUrl?.let { url ->
                         try {

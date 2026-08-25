@@ -195,7 +195,10 @@ fun SettingsScreen(
 
     if (showUpdateDialog) {
         UpdateDialog(
-            onDismiss = { showUpdateDialog = false },
+            onDismiss = {
+                showUpdateDialog = false
+                viewModel.dismissUpdate()
+            },
             onOpenRelease = { /* Handled in dialog */ },
             viewModel = viewModel
         )

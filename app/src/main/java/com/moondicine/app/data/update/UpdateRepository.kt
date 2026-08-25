@@ -60,7 +60,8 @@ class UpdateRepository @Inject constructor(
             val release = gson.fromJson(responseBody, GitHubRelease::class.java)
             val latestVersion = release.tagName
             val hasUpdate = VersionUtil.isNewerVersion(currentVersion, latestVersion)
-            val apkAsset = release.assets.find { it.name.endsWith(".apk") && it.name.contains("release") }
+            // Prefer debug APK (signed, installable) over unsigned release APK
+            val apkAsset = release.assets.find { it.name.endsWith(".apk") && it.name.contains("debug") }
                 ?: release.assets.find { it.name.endsWith(".apk") }
             Result.success(UpdateInfo(
                 hasUpdate = hasUpdate,
