@@ -26,8 +26,8 @@ android {
         applicationId = "com.moondicine.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 11
-        versionName = "1.0.11"
+        versionCode = 12
+        versionName = "1.0.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -50,7 +50,9 @@ android {
             val ksKeyAlias = System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias", "")
             val ksKeyPass = System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword", "")
 
-            storeFile = file(ksFile)
+            if (ksFile.isNotEmpty()) {
+                storeFile = file(ksFile)
+            }
             storePassword = ksStorePass
             keyAlias = ksKeyAlias
             keyPassword = ksKeyPass
@@ -65,7 +67,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            if (keystoreProperties.containsKey("storeFile") || System.getenv("KEYSTORE_FILE") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             isMinifyEnabled = false
