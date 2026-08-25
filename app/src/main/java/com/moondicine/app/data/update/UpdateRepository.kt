@@ -24,7 +24,7 @@ class UpdateRepository @Inject constructor(
         .readTimeout(10, TimeUnit.SECONDS)
         .build()
     
-    private val githubApiUrl = "https://api.github.com/repos/igor/moondicine/releases/latest"
+    private val githubApiUrl = "https://api.github.com/repos/IgorLimaDev/moondicine/releases/latest"
     
     suspend fun checkForUpdates(): Result<UpdateInfo> = withContext(Dispatchers.IO) {
         try {
