@@ -1,0 +1,24 @@
+﻿
+  Initialized native services in: C:\Users\Igor\.gradle\native
+  Initialized jansi services in: C:\Users\Igor\.gradle\native
+> The client will now receive all logging from the daemon (pid: 32320). The 
+daemon log file: C:\Users\Igor\.gradle\daemon\8.14\daemon-32320.out.log
+> Starting 5th build in daemon [uptime: 1 mins 40.678 secs, performance: 99%, 
+GC rate: 0.00/s, heap usage: 1% of 2 GiB]
+  Using 12 worker leases.
+  Now considering [C:\Dev\moondicine] as hierarchies to watch
+  Watching the file system is configured to be enabled if available
+  File system watching is active
+  Starting Build
+    Build cache is disabled
+  System.Management.Automation.RemoteException
+> FAILURE: Build failed with an exception.
+  System.Management.Automation.RemoteException
+> * What went wrong:
+  26.0.1
+  System.Management.Automation.RemoteException
+  * Try:
+  > Run with --stacktrace option to get the stack trace.
+  > Run with --debug option to get more log output.
+
+

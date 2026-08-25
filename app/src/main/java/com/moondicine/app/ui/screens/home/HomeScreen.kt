@@ -1,5 +1,7 @@
 package com.moondicine.app.ui.screens.home
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -11,10 +13,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.moondicine.app.ui.theme.CorrectGreen
+import com.moondicine.app.ui.theme.IncorrectRed
+import com.moondicine.app.ui.theme.Primary
+import com.moondicine.app.ui.theme.Secondary
+import com.moondicine.app.ui.theme.Tertiary
+import com.moondicine.app.ui.theme.WarningOrange
 import com.moondicine.app.ui.updates.UpdateDialog
 import com.moondicine.app.ui.updates.UpdateViewModel
 
@@ -31,6 +40,7 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val updateUiState by updateViewModel.uiState.collectAsState()
     var showUpdateDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     
     // Check for updates on first load
     androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -241,6 +251,22 @@ fun HomeScreen(
                 }
             }
         }
+
+        // Show update dialog
+        if (showUpdateDialog) {
+            UpdateDialog(
+                onDismiss = { showUpdateDialog = false },
+                onOpenRelease = {
+                    updateUiState.updateInfo?.releaseUrl?.let { url ->
+                        try {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                        } catch (_: Exception) { }
+                    }
+                    showUpdateDialog = false
+                },
+                viewModel = updateViewModel
+            )
+        }
     }
 }
 
@@ -421,11 +447,4 @@ fun SpecialtyCard(
             )
         }
     }
-}
-
-UpdateDialog(
-    onDismiss = { },
-    onOpenRelease = { /* Open GitHub release page */ },
-    viewModel = updateViewModel
-)
 }

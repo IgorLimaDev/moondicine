@@ -25,6 +25,7 @@ import com.moondicine.app.ui.screens.stats.StatsScreen
 import com.moondicine.app.ui.screens.onboarding.OnboardingScreen
 import com.moondicine.app.ui.screens.quiz.QuizResultScreen
 import com.moondicine.app.ui.screens.exams.ExamBrowserScreen
+import com.moondicine.app.ui.screens.specialties.SpecialtyBrowserScreen
 import com.moondicine.app.ui.settings.SettingsScreen
 
 sealed class Screen(val route: String) {

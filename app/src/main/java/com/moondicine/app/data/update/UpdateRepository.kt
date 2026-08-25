@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -15,7 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 class UpdateRepository @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val gson: Gson
 ) {
     private val client = OkHttpClient.Builder()
@@ -39,10 +40,13 @@ class UpdateRepository @Inject constructor(
             val response = client.newCall(request).execute()
             
             if (!response.isSuccessful) {
-                return Result.failure(Exception("Failed to check for updates: HTTP ${response.code}"))
+                return@withContext Result.failure(Exception("Failed to check for updates: HTTP ${response.code}"))
             }
             
-            val responseBody = response.body?.string() ?: return Result.failure(Exception("Empty response"))
+            val responseBody = response.body?.string()
+            if (responseBody == null) {
+                return@withContext Result.failure(Exception("Empty response"))
+            }
             val release = gson.fromJson(responseBody, GitHubRelease::class.java)
             
             val latestVersion = release.tagName
