@@ -27,6 +27,7 @@
 # PDFBox
 -keep class org.apache.pdfbox.** { *; }
 -dontwarn org.apache.pdfbox.**
+-dontwarn com.gemalto.jp2.**
 
 # Kotlin Coroutines
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
