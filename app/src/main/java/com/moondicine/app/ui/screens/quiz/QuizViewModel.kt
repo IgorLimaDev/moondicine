@@ -64,8 +64,7 @@ class QuizViewModel @Inject constructor(
             try {
                 val questions = if (examSource != "all") {
                     val examQuestions = questionRepository.getQuestionsByExamSource(examSource)
-                    val available = examQuestions.filter { it.specialty in MAJOR_SPECIALTIES }
-                    if (questionCount > 0) available.take(questionCount) else available
+                    if (questionCount > 0) examQuestions.take(questionCount) else examQuestions
                 } else {
                     when (quizType) {
                         "quick" -> questionRepository.getUnansweredQuestions(questionCount)
@@ -306,11 +305,3 @@ class QuizViewModel @Inject constructor(
         _uiState.update { it.copy(isQuizFinished = true) }
     }
 }
-
-private val MAJOR_SPECIALTIES = setOf(
-    "Clínica Médica",
-    "Cirurgia Geral",
-    "Pediatria",
-    "Ginecologia e Obstetrícia",
-    "Medicina Preventiva"
-)

@@ -26,6 +26,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -105,19 +106,59 @@ fun UpdateDialog(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+                
+                // Download progress
+                if (uiState.isDownloading) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LinearProgressIndicator(
+                        progress = { uiState.downloadProgress / 100f },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Baixando... ${uiState.downloadProgress}%",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Primary
+                    )
+                }
+                
+                // Download error
+                uiState.downloadError?.let { error ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = error,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         },
         confirmButton = {
-            Button(
-                onClick = {
-                    onOpenRelease()
-                    onDismiss()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Filled.Download, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Ver no GitHub")
+            when {
+                uiState.isDownloaded -> {
+                    Button(
+                        onClick = { viewModel.installUpdate() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Filled.Download, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Instalar")
+                    }
+                }
+                uiState.isDownloading -> {
+                    // No action while downloading
+                }
+                else -> {
+                    Button(
+                        onClick = { viewModel.downloadUpdate() },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = updateInfo.downloadUrl != null
+                    ) {
+                        Icon(Icons.Filled.Download, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Baixar e instalar")
+                    }
+                }
             }
         },
         dismissButton = {

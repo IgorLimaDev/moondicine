@@ -64,12 +64,8 @@ data class BottomNavItem(
 
 val bottomNavItems = listOf(
     BottomNavItem(Screen.Home, "Início", Icons.Filled.Home, Icons.Outlined.Home),
-    BottomNavItem(Screen.Upload, "Enviar", Icons.Filled.CloudUpload, Icons.Outlined.CloudUpload),
     BottomNavItem(Screen.Review, "Revisão", Icons.Filled.FavoriteBorder, Icons.Outlined.FavoriteBorder),
-    BottomNavItem(Screen.Exams, "Provas", Icons.Filled.MenuBook, Icons.Outlined.MenuBook),
-    BottomNavItem(Screen.Specialties, "Especialidades", Icons.Filled.MedicalServices, Icons.Outlined.MedicalServices),
-    BottomNavItem(Screen.Stats, "Estatísticas", Icons.Filled.BarChart, Icons.Outlined.BarChart),
-    BottomNavItem(Screen.Settings, "Configurações", Icons.Filled.Settings, Icons.Outlined.Settings)
+    BottomNavItem(Screen.Stats, "Estatísticas", Icons.Filled.BarChart, Icons.Outlined.BarChart)
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,6 +136,9 @@ fun MoonDiceNavHost() {
                     },
                     onUploadClick = {
                         navController.navigate(Screen.Upload.route)
+                    },
+                    onNavigateToSettings = {
+                        navController.navigate(Screen.Settings.route)
                     }
                 )
             }

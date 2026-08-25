@@ -43,7 +43,7 @@ interface QuestionDao {
     @Query("SELECT * FROM questions WHERE difficulty = :difficulty ORDER BY createdAt DESC")
     suspend fun getByDifficulty(difficulty: Int): List<QuestionEntity>
 
-    @Query("SELECT * FROM questions WHERE examSource = :examSource AND specialty IN ('Clínica Médica', 'Cirurgia Geral', 'Pediatria', 'Ginecologia e Obstetrícia', 'Medicina Preventiva') ORDER BY questionNumber ASC")
+    @Query("SELECT * FROM questions WHERE examSource = :examSource ORDER BY questionNumber ASC")
     suspend fun getByExamSource(examSource: String): List<QuestionEntity>
 
     @Query("""
@@ -51,7 +51,6 @@ interface QuestionDao {
         WHERE id NOT IN (
             SELECT questionId FROM user_answers
         ) 
-        AND specialty IN ('Clínica Médica', 'Cirurgia Geral', 'Pediatria', 'Ginecologia e Obstetrícia', 'Medicina Preventiva')
         ORDER BY RANDOM() 
         LIMIT :limit
     """)
@@ -72,7 +71,6 @@ interface QuestionDao {
         SELECT * FROM questions
         WHERE id NOT IN (SELECT questionId FROM user_answers)
         AND examSource = :examSource
-        AND specialty IN ('Clínica Médica', 'Cirurgia Geral', 'Pediatria', 'Ginecologia e Obstetrícia', 'Medicina Preventiva')
         ORDER BY questionNumber ASC
     """)
     suspend fun getUnansweredByExamSource(examSource: String): List<QuestionEntity>
@@ -80,13 +78,13 @@ interface QuestionDao {
     @Query("SELECT COUNT(*) FROM questions")
     suspend fun getCount(): Int
 
-    @Query("SELECT DISTINCT specialty FROM questions WHERE specialty IN ('Clínica Médica', 'Cirurgia Geral', 'Pediatria', 'Ginecologia e Obstetrícia', 'Medicina Preventiva') ORDER BY specialty")
+    @Query("SELECT DISTINCT specialty FROM questions ORDER BY specialty")
     fun getAllSpecialtiesFlow(): Flow<List<String>>
 
-    @Query("SELECT DISTINCT specialty FROM questions WHERE specialty IN ('Clínica Médica', 'Cirurgia Geral', 'Pediatria', 'Ginecologia e Obstetrícia', 'Medicina Preventiva') ORDER BY specialty")
+    @Query("SELECT DISTINCT specialty FROM questions ORDER BY specialty")
     suspend fun getAllSpecialties(): List<String>
 
-    @Query("SELECT DISTINCT examSource FROM questions WHERE specialty IN ('Clínica Médica', 'Cirurgia Geral', 'Pediatria', 'Ginecologia e Obstetrícia', 'Medicina Preventiva') ORDER BY examSource")
+    @Query("SELECT DISTINCT examSource FROM questions ORDER BY examSource")
     suspend fun getAllExamSources(): List<String>
 
     @Query("DELETE FROM questions")

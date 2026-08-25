@@ -34,6 +34,7 @@ fun HomeScreen(
     onSelectExam: () -> Unit,
     onSelectSpecialty: () -> Unit,
     onUploadClick: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
     updateViewModel: UpdateViewModel = hiltViewModel()
 ) {
@@ -63,7 +64,10 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /* Settings */ }) {
+                    IconButton(onClick = onUploadClick) {
+                        Icon(Icons.Filled.CloudUpload, contentDescription = "Enviar PDF")
+                    }
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Filled.Settings, contentDescription = "Configurações")
                     }
                 }

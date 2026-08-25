@@ -60,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/app-release.apk
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
           retention-days: 7
       
       - name: Create Release
@@ -69,7 +69,7 @@ jobs:
         with:
           files: |
             app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/apk/release/app-release-unsigned.apk
           generate_release_notes: true
           draft: false
           prerelease: false

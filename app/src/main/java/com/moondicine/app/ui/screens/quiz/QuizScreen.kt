@@ -34,6 +34,9 @@ fun QuizScreen(
     viewModel: QuizViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showExitDialog by remember { mutableStateOf(false) }
+
+    val answeredCount = uiState.questions.count { it.isAnswered }
 
     LaunchedEffect(quizType, specialtyFilter, examSource, questionCount) {
         viewModel.loadQuestions(quizType, specialtyFilter, examSource, questionCount)
@@ -47,6 +50,35 @@ fun QuizScreen(
                 uiState.timeSpentSeconds
             )
         }
+    }
+
+    // Exit confirmation dialog
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text("Sair do quiz?") },
+            text = {
+                Text(
+                    if (answeredCount > 0)
+                        "Você respondeu $answeredCount de ${uiState.totalQuestions} questões. Seu progresso será salvo."
+                    else
+                        "Nenhuma questão foi respondida ainda."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showExitDialog = false
+                    viewModel.finishQuiz()
+                }) {
+                    Text("Sair")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text("Continuar")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -68,7 +100,7 @@ fun QuizScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { showExitDialog = true }) {
                         Icon(Icons.Filled.Close, contentDescription = "Sair do quiz")
                     }
                 },

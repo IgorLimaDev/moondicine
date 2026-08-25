@@ -27,14 +27,13 @@ class SupabaseSyncRepository @Inject constructor(
             runCatching {
                 val questions = supabaseApi.getQuestions()
                 val options = supabaseApi.getAnswerOptions()
-                val allowedQuestions = questions.filter { it.specialty in MAJOR_SPECIALTIES }
-                val allowedQuestionIds = allowedQuestions.map { it.id }.toSet()
+                val allowedQuestionIds = questions.map { it.id }.toSet()
                 val optionsByQuestion = options
                     .filter { it.questionId in allowedQuestionIds }
                     .groupBy { it.questionId }
                 var syncedCount = 0
 
-                for (remoteQuestion in allowedQuestions) {
+                for (remoteQuestion in questions) {
                     val localQuestion = questionRepository.getQuestionByRemoteId(remoteQuestion.id)
                     val localId = if (localQuestion == null) {
                         questionRepository.insertQuestion(remoteQuestion.toLocal())
@@ -77,14 +76,6 @@ class SupabaseSyncRepository @Inject constructor(
         }
     }
 }
-
-private val MAJOR_SPECIALTIES = setOf(
-    "Clínica Médica",
-    "Cirurgia Geral",
-    "Pediatria",
-    "Ginecologia e Obstetrícia",
-    "Medicina Preventiva"
-)
 
 private fun SupabaseQuestion.toLocal(id: Long = 0L): QuestionEntity {
     return QuestionEntity(
