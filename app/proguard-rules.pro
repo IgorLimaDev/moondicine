@@ -23,11 +23,20 @@
 -keep class com.moondicine.app.ai.models.** { *; }
 
 # ===== Retrofit =====
--keepattributes Signature
+-keepattributes Signature, InnerClasses, EnclosingMethod
 -keep class retrofit2.** { *; }
--keepclasseswithmembers class * {
+-keep,allowobfuscation,allowshrinking interface retrofit2.Call
+-keep,allowobfuscation,allowshrinking class retrofit2.Response
+-keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
+
+# Keep API interface methods with their generic return type signatures
+-keepclassmembers,allowshrinking,allowobfuscation interface * {
     @retrofit2.http.* <methods>;
 }
+
+# Keep all app API interfaces (Retrofit + Supabase + Cohere)
+-keep,allowobfuscation interface com.moondicine.app.data.remote.** { *; }
+-keep,allowobfuscation interface com.moondicine.app.ai.** { *; }
 
 # ===== Room =====
 -keep class * extends androidx.room.RoomDatabase
