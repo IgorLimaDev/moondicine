@@ -97,7 +97,6 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refresh() {
-        _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch { loadDashboardData(syncRemote = true) }
+        viewModelScope.launch { loadDashboardData(syncRemote = false) }
     }
 }

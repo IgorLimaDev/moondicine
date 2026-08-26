@@ -73,7 +73,7 @@ interface UserAnswerDao {
     @Query("DELETE FROM user_answers")
     suspend fun deleteAll()
 
-    @Query("UPDATE user_answers SET isFlagged = :isFlagged WHERE questionId = :questionId")
+    @Query("UPDATE user_answers SET isFlagged = :isFlagged WHERE id = (SELECT id FROM user_answers WHERE questionId = :questionId ORDER BY answeredAt DESC LIMIT 1)")
     suspend fun updateFlag(questionId: Long, isFlagged: Boolean)
 }
 

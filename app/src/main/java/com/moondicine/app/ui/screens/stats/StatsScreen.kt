@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -25,10 +24,15 @@ fun StatsScreen(
     viewModel: StatsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     // Refresh stats every time this screen becomes visible
-    LaunchedEffect(Unit) {
-        viewModel.refresh()
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refresh()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Scaffold(
@@ -56,6 +60,25 @@ fun StatsScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // Error message
+                uiState.errorMessage?.let { error ->
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer
+                            )
+                        ) {
+                            Text(
+                                text = error,
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                }
+
                 // Overall Stats
                 item {
                     Text(
@@ -63,6 +86,16 @@ fun StatsScreen(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
+                }
+
+                if (uiState.totalQuestions > 0) {
+                    item {
+                        Text(
+                            text = "${uiState.totalAnswered} de ${uiState.totalQuestions} questões respondidas",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
                 }
 
                 item {
@@ -269,7 +302,13 @@ fun SpecialtyStatCard(stat: com.moondicine.app.data.database.entity.UserStatsEnt
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "${stat.totalAnswered} questões respondidas",
+                text = buildString {
+                        append("${stat.totalAnswered} questões respondidas")
+                        if (stat.averageTimeSeconds > 0) {
+                            val avgSec = stat.averageTimeSeconds.toInt()
+                            append(" · ~${avgSec}s por questão")
+                        }
+                    },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )

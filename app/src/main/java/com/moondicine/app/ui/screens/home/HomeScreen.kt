@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.moondicine.app.ui.theme.CorrectGreen
 import com.moondicine.app.ui.theme.IncorrectRed
 import com.moondicine.app.ui.theme.Primary
@@ -43,9 +45,17 @@ fun HomeScreen(
     var showUpdateDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     
-    // Check for updates on first load
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        updateViewModel.checkForUpdates()
+    // Check for updates and refresh data every time this screen becomes visible
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+                updateViewModel.checkForUpdates()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
     
     // Show update dialog when available

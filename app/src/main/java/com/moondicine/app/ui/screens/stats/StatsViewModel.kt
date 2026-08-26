@@ -17,7 +17,8 @@ data class StatsUiState(
     val totalCorrect: Int = 0,
     val totalWrong: Int = 0,
     val accuracy: Float = 0f,
-    val specialtyStats: List<UserStatsEntity> = emptyList()
+    val specialtyStats: List<UserStatsEntity> = emptyList(),
+    val errorMessage: String? = null
 )
 
 @HiltViewModel
@@ -35,47 +36,47 @@ class StatsViewModel @Inject constructor(
 
     private fun loadStats() {
         viewModelScope.launch {
-            val totalQ = questionRepository.getQuestionCount()
-            val totalA = userProgressRepository.getTotalAnswered()
-            val totalC = userProgressRepository.getTotalCorrect()
-            val totalW = userProgressRepository.getTotalWrong()
-            val accuracy = if (totalA > 0) totalC.toFloat() / totalA.toFloat() else 0f
-            val stats = userProgressRepository.getAllStats()
-
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    totalQuestions = totalQ,
-                    totalAnswered = totalA,
-                    totalCorrect = totalC,
-                    totalWrong = totalW,
-                    accuracy = accuracy,
-                    specialtyStats = stats
-                )
+            try {
+                refreshData()
+                _uiState.update { it.copy(isLoading = false, errorMessage = null) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = "Erro ao carregar estatísticas: ${e.message}")
+                }
             }
         }
     }
 
     fun refresh() {
         viewModelScope.launch {
-            val totalQ = questionRepository.getQuestionCount()
-            val totalA = userProgressRepository.getTotalAnswered()
-            val totalC = userProgressRepository.getTotalCorrect()
-            val totalW = userProgressRepository.getTotalWrong()
-            val accuracy = if (totalA > 0) totalC.toFloat() / totalA.toFloat() else 0f
-            val stats = userProgressRepository.getAllStats()
-
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    totalQuestions = totalQ,
-                    totalAnswered = totalA,
-                    totalCorrect = totalC,
-                    totalWrong = totalW,
-                    accuracy = accuracy,
-                    specialtyStats = stats
-                )
+            try {
+                refreshData()
+                _uiState.update { it.copy(errorMessage = null) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(errorMessage = "Erro ao atualizar estatísticas: ${e.message}")
+                }
             }
+        }
+    }
+
+    private suspend fun refreshData() {
+        val totalQ = questionRepository.getQuestionCount()
+        val totalA = userProgressRepository.getTotalAnswered()
+        val totalC = userProgressRepository.getTotalCorrect()
+        val totalW = userProgressRepository.getTotalWrong()
+        val accuracy = if (totalA > 0) totalC.toFloat() / totalA.toFloat() else 0f
+        val stats = userProgressRepository.getAllStats()
+
+        _uiState.update {
+            it.copy(
+                totalQuestions = totalQ,
+                totalAnswered = totalA,
+                totalCorrect = totalC,
+                totalWrong = totalW,
+                accuracy = accuracy,
+                specialtyStats = stats
+            )
         }
     }
 }

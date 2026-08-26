@@ -67,8 +67,13 @@ class QuizViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val questions = if (examSource != "all") {
-                    val examQuestions = questionRepository.getQuestionsByExamSource(examSource)
-                    if (isInfiniteMode) examQuestions else if (questionCount > 0) examQuestions.take(questionCount) else examQuestions
+                    val examQuestions = if (isInfiniteMode) {
+                        questionRepository.getQuestionsByExamSource(examSource)
+                    } else {
+                        val unanswered = questionRepository.getUnansweredByExamSource(examSource)
+                        if (questionCount > 0) unanswered.shuffled().take(questionCount) else unanswered
+                    }
+                    examQuestions
                 } else {
                     when (quizType) {
                         "quick" -> {

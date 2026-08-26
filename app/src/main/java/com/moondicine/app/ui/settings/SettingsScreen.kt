@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.moondicine.app.BuildConfig
 import com.moondicine.app.ui.theme.CorrectGreen
 import com.moondicine.app.ui.theme.Primary
 import com.moondicine.app.ui.updates.UpdateDialog
@@ -92,7 +93,7 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text("Sobre o Moondicine", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text("Versão 1.0.0", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            Text("Versão ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                         }
                     }
                 }
