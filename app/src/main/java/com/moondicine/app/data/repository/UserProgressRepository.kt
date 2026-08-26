@@ -43,6 +43,9 @@ class UserProgressRepository @Inject constructor(
     suspend fun getMostMissedQuestionIds(limit: Int = 20): List<QuestionErrorCount> =
         userAnswerDao.getMostMissedQuestionIds(limit)
 
+    suspend fun updateFlag(questionId: Long, isFlagged: Boolean) =
+        userAnswerDao.updateFlag(questionId, isFlagged)
+
     suspend fun getTotalAnswered(): Int = userAnswerDao.getTotalAnswered()
 
     suspend fun getTotalCorrect(): Int = userAnswerDao.getTotalCorrect()

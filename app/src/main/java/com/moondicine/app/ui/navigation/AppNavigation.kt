@@ -33,14 +33,15 @@ sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object Upload : Screen("upload")
     data object QuizSetup : Screen("quiz_setup")
-    data object Quiz : Screen("quiz/{quizType}/{specialtyFilter}/{examSource}/{questionCount}") {
+    data object Quiz : Screen("quiz/{quizType}/{specialtyFilter}/{examSource}/{questionCount}/{quizMode}") {
         fun createRoute(
             quizType: String,
             specialtyFilter: String = "all",
             questionCount: Int = 10,
-            examSource: String = "all"
+            examSource: String = "all",
+            quizMode: String = "teste"
         ): String {
-            return "quiz/$quizType/$specialtyFilter/${Uri.encode(examSource)}/$questionCount"
+            return "quiz/$quizType/$specialtyFilter/${Uri.encode(examSource)}/$questionCount/$quizMode"
         }
     }
     data object QuizResult : Screen("quiz_result/{totalQuestions}/{correctAnswers}/{timeSpent}") {
@@ -125,8 +126,8 @@ fun MoonDiceNavHost() {
 
             composable(Screen.Home.route) {
                 HomeScreen(
-                    onStartQuiz = { quizType, specialty, count ->
-                        navController.navigate(Screen.Quiz.createRoute(quizType, specialty, count))
+                    onStartQuiz = { quizType, specialty, count, mode ->
+                        navController.navigate(Screen.Quiz.createRoute(quizType, specialty, count, quizMode = mode))
                     },
                     onSelectExam = {
                         navController.navigate(Screen.Exams.route)
@@ -162,19 +163,22 @@ fun MoonDiceNavHost() {
                     navArgument("quizType") { type = NavType.StringType },
                     navArgument("specialtyFilter") { type = NavType.StringType; defaultValue = "all" },
                     navArgument("examSource") { type = NavType.StringType; defaultValue = "all" },
-                    navArgument("questionCount") { type = NavType.IntType; defaultValue = 10 }
+                    navArgument("questionCount") { type = NavType.IntType; defaultValue = 10 },
+                    navArgument("quizMode") { type = NavType.StringType; defaultValue = "teste" }
                 )
             ) { backStackEntry ->
                 val quizType = backStackEntry.arguments?.getString("quizType") ?: "quick"
                 val specialtyFilter = backStackEntry.arguments?.getString("specialtyFilter") ?: "all"
                 val examSource = backStackEntry.arguments?.getString("examSource") ?: "all"
                 val questionCount = backStackEntry.arguments?.getInt("questionCount") ?: 10
+                val quizMode = backStackEntry.arguments?.getString("quizMode") ?: "teste"
 
                 QuizScreen(
                     quizType = quizType,
                     specialtyFilter = specialtyFilter,
                     examSource = examSource,
                     questionCount = questionCount,
+                    quizMode = quizMode,
                     onQuizFinished = { total, correct, time ->
                         navController.navigate(Screen.QuizResult.createRoute(total, correct, time)) {
                             popUpTo(Screen.Home.route)
@@ -220,12 +224,13 @@ fun MoonDiceNavHost() {
             composable(Screen.Exams.route) {
                 ExamBrowserScreen(
                     onBackClick = { navController.popBackStack() },
-                    onStartExam = { examSource, questionCount ->
+                    onStartExam = { examSource, questionCount, mode ->
                         navController.navigate(
                             Screen.Quiz.createRoute(
                                 quizType = "exam",
                                 questionCount = questionCount,
-                                examSource = examSource
+                                examSource = examSource,
+                                quizMode = mode
                             )
                         )
                     }
@@ -235,12 +240,13 @@ fun MoonDiceNavHost() {
             composable(Screen.Specialties.route) {
                 SpecialtyBrowserScreen(
                     onBackClick = { navController.popBackStack() },
-                    onStartSpecialty = { specialty, questionCount ->
+                    onStartSpecialty = { specialty, questionCount, mode ->
                         navController.navigate(
                             Screen.Quiz.createRoute(
                                 quizType = "specialty",
                                 specialtyFilter = specialty,
-                                questionCount = questionCount
+                                questionCount = questionCount,
+                                quizMode = mode
                             )
                         )
                     }

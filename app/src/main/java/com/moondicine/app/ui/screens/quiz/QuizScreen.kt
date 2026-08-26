@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.moondicine.app.data.database.entity.AnswerOptionEntity
 import com.moondicine.app.ui.theme.*
+import com.moondicine.app.ui.theme.WarningOrange
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,6 +30,7 @@ fun QuizScreen(
     specialtyFilter: String,
     examSource: String,
     questionCount: Int,
+    quizMode: String = "teste",
     onQuizFinished: (total: Int, correct: Int, time: Int) -> Unit,
     onBackClick: () -> Unit,
     viewModel: QuizViewModel = hiltViewModel()
@@ -39,7 +41,7 @@ fun QuizScreen(
     val answeredCount = uiState.questions.count { it.isAnswered }
 
     LaunchedEffect(quizType, specialtyFilter, examSource, questionCount) {
-        viewModel.loadQuestions(quizType, specialtyFilter, examSource, questionCount)
+        viewModel.loadQuestions(quizType, specialtyFilter, examSource, questionCount, quizMode)
     }
 
     LaunchedEffect(uiState.isQuizFinished) {
@@ -87,15 +89,23 @@ fun QuizScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Quiz em andamento",
+                            text = if (uiState.isInfinitoMode) "Modo Infinito" else "Quiz em andamento",
                             style = MaterialTheme.typography.titleMedium
                         )
                         if (uiState.currentQuestion != null) {
-                            Text(
-                                text = "${uiState.currentIndex + 1} de ${uiState.totalQuestions}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
+                            if (uiState.isInfinitoMode) {
+                                Text(
+                                    text = "Questão ${uiState.currentIndex + 1} · ${answeredCount} respondidas",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            } else {
+                                Text(
+                                    text = "${uiState.currentIndex + 1} de ${uiState.totalQuestions}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
                         }
                     }
                 },
@@ -397,43 +407,62 @@ fun QuizScreen(
                         modifier = Modifier.fillMaxWidth(),
                         tonalElevation = 3.dp
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            // Previous
-                            OutlinedButton(
-                                onClick = { viewModel.previousQuestion() },
-                                enabled = uiState.currentIndex > 0,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(Icons.Filled.ArrowBack, contentDescription = null)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Anterior")
-                            }
-
-                            // Confirm / Next
-                            if (!uiState.isAnswerRevealed) {
-                                Button(
-                                    onClick = { viewModel.confirmAnswer() },
-                                    enabled = uiState.selectedOptionId != null,
-                                    modifier = Modifier.weight(1f)
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            // Finish button for Infinito mode
+                            if (uiState.isInfinitoMode && answeredCount > 0) {
+                                TextButton(
+                                    onClick = { viewModel.finishQuiz() },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 4.dp)
                                 ) {
-                                    Text("Confirmar")
+                                    Icon(Icons.Filled.Flag, contentDescription = null, tint = WarningOrange)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Finalizar quiz ($answeredCount respondidas)", color = WarningOrange)
                                 }
-                            } else {
-                                Button(
-                                    onClick = { viewModel.nextQuestion() },
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Previous
+                                OutlinedButton(
+                                    onClick = { viewModel.previousQuestion() },
+                                    enabled = uiState.currentIndex > 0,
                                     modifier = Modifier.weight(1f)
                                 ) {
-                                    Text(
-                                        if (uiState.currentIndex < uiState.totalQuestions - 1) "Próximo"
-                                        else "Finalizar"
-                                    )
+                                    Icon(Icons.Filled.ArrowBack, contentDescription = null)
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Icon(Icons.Filled.ArrowForward, contentDescription = null)
+                                    Text("Anterior")
+                                }
+
+                                // Confirm / Next
+                                if (!uiState.isAnswerRevealed) {
+                                    Button(
+                                        onClick = { viewModel.confirmAnswer() },
+                                        enabled = uiState.selectedOptionId != null,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Confirmar")
+                                    }
+                                } else {
+                                    Button(
+                                        onClick = { viewModel.nextQuestion() },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        if (uiState.isInfinitoMode) {
+                                            Text("Próximo")
+                                        } else {
+                                            Text(
+                                                if (uiState.currentIndex < uiState.totalQuestions - 1) "Próximo"
+                                                else "Finalizar"
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Icon(Icons.Filled.ArrowForward, contentDescription = null)
+                                    }
                                 }
                             }
                         }

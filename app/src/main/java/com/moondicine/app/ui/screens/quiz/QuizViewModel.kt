@@ -34,7 +34,9 @@ data class QuizUiState(
     val timeSpentSeconds: Int = 0,
     val isQuizFinished: Boolean = false,
     val errorMessage: String? = null,
-    val showNoteDialog: Boolean = false
+    val showNoteDialog: Boolean = false,
+    val quizMode: String = "teste",
+    val isInfinitoMode: Boolean = false
 ) {
     val currentQuestion: QuizQuestion?
         get() = questions.getOrNull(currentIndex)
@@ -44,6 +46,9 @@ data class QuizUiState(
 
     val progress: Float
         get() = if (questions.isEmpty()) 0f else currentIndex.toFloat() / questions.size.toFloat()
+
+    val answeredCount: Int
+        get() = questions.count { it.isAnswered }
 }
 
 @HiltViewModel
@@ -59,27 +64,48 @@ class QuizViewModel @Inject constructor(
     private var startTime = 0L
     private var timerJob: kotlinx.coroutines.Job? = null
 
-    fun loadQuestions(quizType: String, specialtyFilter: String, examSource: String, questionCount: Int) {
+    fun loadQuestions(quizType: String, specialtyFilter: String, examSource: String, questionCount: Int, quizMode: String = "teste") {
+        val isInfiniteMode = quizMode == "infinito"
         viewModelScope.launch {
             try {
                 val questions = if (examSource != "all") {
                     val examQuestions = questionRepository.getQuestionsByExamSource(examSource)
-                    if (questionCount > 0) examQuestions.take(questionCount) else examQuestions
+                    if (isInfiniteMode) examQuestions else if (questionCount > 0) examQuestions.take(questionCount) else examQuestions
                 } else {
                     when (quizType) {
-                        "quick" -> questionRepository.getUnansweredQuestions(questionCount)
-                        "specialty" -> {
-                            if (specialtyFilter != "all") {
-                                questionRepository.getUnansweredBySpecialty(specialtyFilter, questionCount)
+                        "quick" -> {
+                            if (isInfiniteMode) {
+                                questionRepository.getAllAvailableQuestions()
                             } else {
                                 questionRepository.getUnansweredQuestions(questionCount)
+                            }
+                        }
+                        "specialty" -> {
+                            if (specialtyFilter != "all") {
+                                if (isInfiniteMode) {
+                                    questionRepository.getAllBySpecialty(specialtyFilter)
+                                } else {
+                                    questionRepository.getUnansweredBySpecialty(specialtyFilter, questionCount)
+                                }
+                            } else {
+                                if (isInfiniteMode) {
+                                    questionRepository.getAllAvailableQuestions()
+                                } else {
+                                    questionRepository.getUnansweredQuestions(questionCount)
+                                }
                             }
                         }
                         "weak" -> {
                             val missedIds = userProgressRepository.getMostMissedQuestionIds(questionCount)
                             missedIds.mapNotNull { questionRepository.getQuestionById(it.questionId) }
                         }
-                        "exam" -> questionRepository.getUnansweredQuestions(questionCount)
+                        "exam" -> {
+                            if (isInfiniteMode) {
+                                questionRepository.getAllAvailableQuestions()
+                            } else {
+                                questionRepository.getUnansweredQuestions(questionCount)
+                            }
+                        }
                         else -> questionRepository.getUnansweredQuestions(questionCount)
                     }
                 }
@@ -106,7 +132,9 @@ class QuizViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        questions = quizQuestions
+                        questions = quizQuestions,
+                        quizMode = quizMode,
+                        isInfinitoMode = isInfiniteMode
                     )
                 }
 
@@ -264,9 +292,17 @@ class QuizViewModel @Inject constructor(
     fun toggleFlag() {
         val state = _uiState.value
         val current = state.currentQuestion ?: return
+        val newFlagState = !current.isFlagged
         val updatedQuestions = state.questions.toMutableList()
-        updatedQuestions[state.currentIndex] = current.copy(isFlagged = !current.isFlagged)
+        updatedQuestions[state.currentIndex] = current.copy(isFlagged = newFlagState)
         _uiState.update { it.copy(questions = updatedQuestions) }
+
+        // Persist flag to database if the question has been answered
+        if (current.userAnswer != null) {
+            viewModelScope.launch {
+                userProgressRepository.updateFlag(current.question.id, newFlagState)
+            }
+        }
     }
 
     fun showNoteDialog() {

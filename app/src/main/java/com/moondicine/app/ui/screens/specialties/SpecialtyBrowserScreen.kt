@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,7 +44,7 @@ import com.moondicine.app.ui.theme.CorrectGreen
 @Composable
 fun SpecialtyBrowserScreen(
     onBackClick: () -> Unit,
-    onStartSpecialty: (specialty: String, questionCount: Int) -> Unit,
+    onStartSpecialty: (specialty: String, questionCount: Int, mode: String) -> Unit,
     viewModel: SpecialtyBrowserViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -108,7 +109,7 @@ fun SpecialtyBrowserScreen(
                     items(uiState.specialties, key = { it.name }) { specialty ->
                         SpecialtyCard(
                             specialty = specialty,
-                            onStart = { count -> onStartSpecialty(specialty.name, count) }
+                            onStart = { count, mode -> onStartSpecialty(specialty.name, count, mode) }
                         )
                     }
                 }
@@ -121,7 +122,7 @@ fun SpecialtyBrowserScreen(
 @Composable
 private fun SpecialtyCard(
     specialty: SpecialtyItem,
-    onStart: (Int) -> Unit
+    onStart: (Int, String) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -140,19 +141,35 @@ private fun SpecialtyCard(
                 }
             }
             Spacer(modifier = Modifier.size(12.dp))
-            Text("Escolha a quantidade", style = MaterialTheme.typography.labelLarge)
+
+            // Modo Teste
+            Text("Modo Teste", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text("Responda um número fixo de questões", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+            Spacer(modifier = Modifier.size(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf(1, 2, 5, 10, 15, 20).forEach { count ->
-                    Button(onClick = { onStart(count) }) {
-                        Text("$count")
+                    if (count <= specialty.questionCount) {
+                        Button(onClick = { onStart(count, "teste") }, modifier = Modifier.weight(1f)) {
+                            Text("$count")
+                        }
                     }
                 }
-                Button(onClick = { onStart(0) }) {
-                    Text("Todas")
-                }
+            }
+
+            Spacer(modifier = Modifier.size(12.dp))
+
+            // Modo Infinito
+            Button(
+                onClick = { onStart(0, "infinito") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                )
+            ) {
+                Text("Modo Infinito — Todas as ${specialty.questionCount} questões")
             }
         }
     }

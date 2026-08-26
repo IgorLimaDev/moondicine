@@ -44,25 +44,33 @@ object PromptTemplates {
         val userAnswerText = userAnswer?.let { "\nResposta do usuário: $it" } ?: ""
 
         return """
-            Você é um especialista em educação médica explicando respostas de provas de residência.
-            Responda exclusivamente em português do Brasil e forneça uma explicação detalhada.
+            Você é um professor especialista em educação médica para provas de residência médica no Brasil.
+            Sua tarefa é fornecer uma explicação EXTREMAMENTE DETALHADA e PROFUNDA sobre a questão abaixo.
 
             Questão: $questionText
 
             Alternativas:
             $optionsText
 
-            Resposta correta: $correctAnswer)$options[correctAnswer]
+            Resposta correta: $correctAnswer) ${options[correctAnswer] ?: ""}
             $userAnswerText
 
-            Return a JSON object with:
             Retorne um objeto JSON com:
-            - "correctReasoning": explicação detalhada, em português do Brasil, do motivo pelo qual a resposta correta está certa
-            - "wrongReasoning": objeto que associa cada alternativa errada a uma explicação específica do motivo do erro
-            - "highYieldPoints": array com 2 a 4 pontos essenciais para a prova
-            - "relatedTopics": array com 2 a 3 temas relacionados para estudo
+            - "correctReasoning": explicação MUITO detalhada e aprofundada (mínimo 5-8 frases) do motivo pelo qual a resposta correta está certa. Inclua:
+              * O raciocínio clínico passo a passo
+              * A fisiopatologia ou mecanismo envolvido
+              * Dados estatísticos ou evidências científicas quando relevante
+              * Por que essa é a melhor escolha entre todas as alternativas
+              * Conexão com a prática clínica real
+            - "wrongReasoning": objeto JSON associando CADA alternativa errada (A, B, C, D, E - exceto a correta) a uma explicação detalhada de 2-4 frases sobre:
+              * Por que aquela alternativa está errada
+              * O erro conceitual mais comum associado a ela
+              * Qual seria a situação em que aquela alternativa poderia estar correta (se aplicável)
+            - "highYieldPoints": array com 3 a 5 pontos essenciais e de alto rendimento para prova, cada um com 1-2 frases explicativas
+            - "relatedTopics": array com 3 a 4 temas relacionados para estudo aprofundado
 
-            Torne as explicações clinicamente relevantes e focadas na prova.
+            Formato: responda APENAS com o objeto JSON válido, sem texto adicional antes ou depois.
+            Idioma: exclusivamente português do Brasil.
         """.trimIndent()
     }
 

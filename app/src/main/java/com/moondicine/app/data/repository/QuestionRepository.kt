@@ -30,6 +30,11 @@ class QuestionRepository @Inject constructor(
     fun getQuestionsBySpecialtyFlow(specialty: String): Flow<List<QuestionEntity>> =
         questionDao.getBySpecialtyFlow(specialty)
 
+    suspend fun getAllAvailableQuestions(): List<QuestionEntity> = questionDao.getAll()
+
+    suspend fun getAllBySpecialty(specialty: String): List<QuestionEntity> =
+        questionDao.getBySpecialty(specialty)
+
     suspend fun getUnansweredQuestions(limit: Int): List<QuestionEntity> =
         questionDao.getUnanswered(limit)
 

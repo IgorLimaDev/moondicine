@@ -47,7 +47,7 @@ import com.moondicine.app.ui.theme.CorrectGreen
 @Composable
 fun ExamBrowserScreen(
     onBackClick: () -> Unit,
-    onStartExam: (examSource: String, questionCount: Int) -> Unit,
+    onStartExam: (examSource: String, questionCount: Int, mode: String) -> Unit,
     viewModel: ExamBrowserViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -127,7 +127,7 @@ fun ExamBrowserScreen(
 private fun ExamSectionCard(
     exam: ExamSection,
     onToggle: () -> Unit,
-    onStartExam: (examSource: String, questionCount: Int) -> Unit
+    onStartExam: (examSource: String, questionCount: Int, mode: String) -> Unit
 ) {
     Card(
         onClick = onToggle,
@@ -153,20 +153,35 @@ private fun ExamSectionCard(
 
             if (exam.isExpanded) {
                 Spacer(modifier = Modifier.size(12.dp))
-                Text("Escolha a quantidade", style = MaterialTheme.typography.labelLarge)
+
+                // Modo Teste
+                Text("Modo Teste", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Text("Responda um número fixo", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                Spacer(modifier = Modifier.size(6.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     listOf(1, 2, 5).filter { it <= exam.questions.size }.forEach { count ->
-                        Button(onClick = { onStartExam(exam.source, count) }) {
+                        Button(onClick = { onStartExam(exam.source, count, "teste") }, modifier = Modifier.weight(1f)) {
                             Text("$count")
-                        }
+                        )
                     }
-                    Button(onClick = { onStartExam(exam.source, 0) }) {
-                        Text("Prova completa")
+                    Button(onClick = { onStartExam(exam.source, 0, "teste") }, modifier = Modifier.weight(1f)) {
+                        Text("Completa")
                     }
                 }
+
+                Spacer(modifier = Modifier.size(8.dp))
+
+                // Modo Infinito
+                Button(
+                    onClick = { onStartExam(exam.source, 0, "infinito") },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Modo Infinito — Todas as ${exam.questions.size} questões")
+                }
+
                 Spacer(modifier = Modifier.size(8.dp))
                 exam.questions.forEach { item ->
                     ExamQuestionRow(item)

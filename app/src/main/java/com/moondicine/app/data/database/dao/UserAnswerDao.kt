@@ -72,6 +72,9 @@ interface UserAnswerDao {
 
     @Query("DELETE FROM user_answers")
     suspend fun deleteAll()
+
+    @Query("UPDATE user_answers SET isFlagged = :isFlagged WHERE questionId = :questionId")
+    suspend fun updateFlag(questionId: Long, isFlagged: Boolean)
 }
 
 data class QuestionErrorCount(

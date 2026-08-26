@@ -30,7 +30,7 @@ import com.moondicine.app.ui.updates.UpdateViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onStartQuiz: (quizType: String, specialty: String, count: Int) -> Unit,
+    onStartQuiz: (quizType: String, specialty: String, count: Int, mode: String) -> Unit,
     onSelectExam: () -> Unit,
     onSelectSpecialty: () -> Unit,
     onUploadClick: () -> Unit,
@@ -172,28 +172,19 @@ fun HomeScreen(
                 item {
                     ActionCard(
                         title = "Quiz rápido",
-                        subtitle = "10 questões aleatórias",
+                        subtitle = "Questões aleatórias",
                         icon = Icons.Filled.FlashOn,
                         color = Primary,
-                        onClick = { onStartQuiz("quick", "all", 10) }
-                    )
-                }
-                item {
-                    ActionCard(
-                        title = "Quiz por especialidade",
-                        subtitle = "Escolha seu foco",
-                        icon = Icons.Filled.MedicalServices,
-                        color = Tertiary,
-                        onClick = { onStartQuiz("specialty", "all", 15) }
+                        onClick = { onStartQuiz("quick", "all", 10, "teste") }
                     )
                 }
                 item {
                     ActionCard(
                         title = "Áreas fracas",
-                        subtitle = "Reveja erros",
+                        subtitle = "Reveja seus erros",
                         icon = Icons.Filled.SentimentDissatisfied,
                         color = IncorrectRed,
-                        onClick = { onStartQuiz("weak", "all", 10) }
+                        onClick = { onStartQuiz("weak", "all", 10, "teste") }
                     )
                 }
                 item {
@@ -202,13 +193,22 @@ fun HomeScreen(
                         subtitle = "Prova completa",
                         icon = Icons.Filled.Timer,
                         color = Secondary,
-                        onClick = { onStartQuiz("exam", "all", 40) }
+                        onClick = { onStartQuiz("exam", "all", 40, "teste") }
+                    )
+                }
+                item {
+                    ActionCard(
+                        title = "Modo Infinito",
+                        subtitle = "Pratique sem limite",
+                        icon = Icons.Filled.AllInclusive,
+                        color = Tertiary,
+                        onClick = { onStartQuiz("quick", "all", 0, "infinito") }
                     )
                 }
                 item {
                     ActionCard(
                         title = "Escolher prova",
-                        subtitle = "Selecione uma prova específica",
+                        subtitle = "Selecione uma prova",
                         icon = Icons.Filled.MenuBook,
                         color = Tertiary,
                         onClick = onSelectExam
@@ -217,7 +217,7 @@ fun HomeScreen(
                 item {
                     ActionCard(
                         title = "Escolher especialidade",
-                        subtitle = "Selecione uma especialidade",
+                        subtitle = "Foco por matéria",
                         icon = Icons.Filled.MedicalServices,
                         color = Primary,
                         onClick = onSelectSpecialty
