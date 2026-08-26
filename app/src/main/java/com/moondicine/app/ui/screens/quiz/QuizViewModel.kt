@@ -2,7 +2,6 @@ package com.moondicine.app.ui.screens.quiz
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.moondicine.app.ai.CohereService
 import com.moondicine.app.data.database.entity.*
 import com.moondicine.app.data.database.dao.QuestionErrorCount
 import com.moondicine.app.data.repository.QuestionRepository
@@ -54,8 +53,7 @@ data class QuizUiState(
 @HiltViewModel
 class QuizViewModel @Inject constructor(
     private val questionRepository: QuestionRepository,
-    private val userProgressRepository: UserProgressRepository,
-    private val cohereService: CohereService
+    private val userProgressRepository: UserProgressRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QuizUiState())
@@ -207,50 +205,12 @@ class QuizViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isExplanationLoading = true) }
 
-            // Check cache first
-            val cached = userProgressRepository.getExplanation(quizQuestion.question.id)
-            if (cached != null) {
-                _uiState.update {
-                    it.copy(
-                        explanation = cached,
-                        isExplanationLoading = false
-                    )
-                }
-                return@launch
-            }
-
-            // Generate new explanation
-            val correctOption = quizQuestion.options.find { it.isCorrect }
-            if (correctOption == null) {
-                _uiState.update { it.copy(isExplanationLoading = false) }
-                return@launch
-            }
-
-            val optionsMap = quizQuestion.options.associate { it.optionLetter to it.optionText }
-
-            val result = cohereService.generateExplanation(
-                questionText = quizQuestion.question.questionText,
-                options = optionsMap,
-                correctAnswer = correctOption.optionLetter,
-                userAnswer = userAnswerLetter
-            )
-
-            result.onSuccess { response ->
-                val explanation = AIExplanationEntity(
-                    questionId = quizQuestion.question.id,
-                    explanationText = response.correctReasoning,
-                    correctReasoning = response.correctReasoning,
-                    wrongReasoning = com.google.gson.Gson().toJson(response.wrongReasoning)
+            val explanation = userProgressRepository.getExplanation(quizQuestion.question.id)
+            _uiState.update {
+                it.copy(
+                    explanation = explanation,
+                    isExplanationLoading = false
                 )
-                userProgressRepository.cacheExplanation(explanation)
-                _uiState.update {
-                    it.copy(
-                        explanation = explanation,
-                        isExplanationLoading = false
-                    )
-                }
-            }.onFailure {
-                _uiState.update { it.copy(isExplanationLoading = false) }
             }
         }
     }

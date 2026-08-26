@@ -325,7 +325,7 @@ fun QuizScreen(
                                         ) {
                                             CircularProgressIndicator(modifier = Modifier.size(24.dp))
                                             Spacer(modifier = Modifier.width(12.dp))
-                                            Text("Gerando explicação da IA...")
+                                            Text("Carregando explicação...")
                                         }
                                     }
                                 } else if (uiState.explanation != null) {
@@ -382,6 +382,21 @@ fun QuizScreen(
                                                 }
                                             }
                                         }
+                                    }
+                                } else {
+                                    // No explanation available in database
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                        )
+                                    ) {
+                                        Text(
+                                            text = "Nenhuma explicação disponível para esta questão.",
+                                            modifier = Modifier.padding(16.dp),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        )
                                     }
                                 }
 

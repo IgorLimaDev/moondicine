@@ -165,7 +165,7 @@ private fun ExamSectionCard(
                     listOf(1, 2, 5).filter { it <= exam.questions.size }.forEach { count ->
                         Button(onClick = { onStartExam(exam.source, count, "teste") }, modifier = Modifier.weight(1f)) {
                             Text("$count")
-                        )
+                        }
                     }
                     Button(onClick = { onStartExam(exam.source, 0, "teste") }, modifier = Modifier.weight(1f)) {
                         Text("Completa")
