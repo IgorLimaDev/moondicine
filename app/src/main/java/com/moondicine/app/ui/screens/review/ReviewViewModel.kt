@@ -98,19 +98,20 @@ class ReviewViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val flaggedAnswers = userProgressRepository.getFlaggedAnswers()
-            val items = flaggedAnswers.mapNotNull { answer ->
-                val question = questionRepository.getQuestionById(answer.questionId) ?: return@mapNotNull null
+            val flaggedQuestionIds = userProgressRepository.getFlaggedQuestionIds()
+            val items = flaggedQuestionIds.mapNotNull { questionId ->
+                val question = questionRepository.getQuestionById(questionId) ?: return@mapNotNull null
                 val options = questionRepository.getOptionsForQuestion(question.id)
+                val userAnswer = userProgressRepository.getLatestAnswerForQuestion(question.id)
                 val explanation = userProgressRepository.getExplanation(question.id)
 
                 ReviewItem(
                     question = question,
                     options = options,
-                    userAnswer = answer,
+                    userAnswer = userAnswer,
                     explanation = explanation
                 )
-            }.distinctBy { it.question.id }
+            }
 
             _uiState.update {
                 it.copy(

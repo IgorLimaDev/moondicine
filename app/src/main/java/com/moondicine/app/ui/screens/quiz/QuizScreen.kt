@@ -46,8 +46,10 @@ fun QuizScreen(
 
     LaunchedEffect(uiState.isQuizFinished) {
         if (uiState.isQuizFinished) {
+            // In infinito mode, report stats based on actually answered questions
+            val total = if (uiState.isInfinitoMode) answeredCount else uiState.totalQuestions
             onQuizFinished(
-                uiState.totalQuestions,
+                total,
                 uiState.correctCount,
                 uiState.timeSpentSeconds
             )

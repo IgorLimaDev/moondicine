@@ -118,12 +118,14 @@ class QuizViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Load options for each question
+                // Load options and flags for each question
+                val flaggedIds = userProgressRepository.getFlaggedQuestionIds().toSet()
                 val quizQuestions = questions.map { question ->
                     val options = questionRepository.getOptionsForQuestion(question.id)
                     QuizQuestion(
                         question = question,
-                        options = options
+                        options = options,
+                        isFlagged = question.id in flaggedIds
                     )
                 }
 
@@ -230,7 +232,10 @@ class QuizViewModel @Inject constructor(
         } else {
             // Quiz finished
             timerJob?.cancel()
-            _uiState.update { it.copy(isQuizFinished = true) }
+            viewModelScope.launch {
+                updateStreak()
+                _uiState.update { it.copy(isQuizFinished = true) }
+            }
         }
     }
 
@@ -257,9 +262,11 @@ class QuizViewModel @Inject constructor(
         updatedQuestions[state.currentIndex] = current.copy(isFlagged = newFlagState)
         _uiState.update { it.copy(questions = updatedQuestions) }
 
-        // Persist flag to database if the question has been answered
-        if (current.userAnswer != null) {
-            viewModelScope.launch {
+        // Always persist flag to database
+        viewModelScope.launch {
+            userProgressRepository.toggleQuestionFlag(current.question.id)
+            // Also update user_answers if already answered
+            if (current.userAnswer != null) {
                 userProgressRepository.updateFlag(current.question.id, newFlagState)
             }
         }
@@ -298,6 +305,36 @@ class QuizViewModel @Inject constructor(
 
     fun finishQuiz() {
         timerJob?.cancel()
-        _uiState.update { it.copy(isQuizFinished = true) }
+        viewModelScope.launch {
+            updateStreak()
+            _uiState.update { it.copy(isQuizFinished = true) }
+        }
+    }
+
+    private suspend fun updateStreak() {
+        try {
+            val profile = userProgressRepository.getUserProfile()
+                ?: UserProfileEntity(id = 1, onboardingCompleted = true)
+            val now = System.currentTimeMillis()
+            val lastDate = profile.lastStudyDate
+            val dayMs = 24 * 60 * 60 * 1000L
+
+            val newStreak = when {
+                lastDate == 0L -> 1
+                // Same day — don't increment, keep current streak
+                (now / dayMs) == (lastDate / dayMs) -> profile.currentStreakDays.coerceAtLeast(1)
+                // Next consecutive day
+                (now / dayMs) - (lastDate / dayMs) == 1L -> profile.currentStreakDays + 1
+                // Streak broken
+                else -> 1
+            }
+
+            userProgressRepository.saveUserProfile(
+                profile.copy(
+                    currentStreakDays = newStreak,
+                    lastStudyDate = now
+                )
+            )
+        } catch (_: Exception) { }
     }
 }

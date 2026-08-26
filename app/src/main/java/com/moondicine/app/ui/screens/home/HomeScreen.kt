@@ -189,15 +189,6 @@ fun HomeScreen(
                 }
                 item {
                     ActionCard(
-                        title = "Simulado",
-                        subtitle = "Prova completa",
-                        icon = Icons.Filled.Timer,
-                        color = Secondary,
-                        onClick = { onStartQuiz("exam", "all", 40, "teste") }
-                    )
-                }
-                item {
-                    ActionCard(
                         title = "Modo Infinito",
                         subtitle = "Pratique sem limite",
                         icon = Icons.Filled.AllInclusive,

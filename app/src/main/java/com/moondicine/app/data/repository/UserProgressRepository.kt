@@ -3,6 +3,7 @@ package com.moondicine.app.data.repository
 import androidx.room.withTransaction
 import com.moondicine.app.data.database.AppDatabase
 import com.moondicine.app.data.database.dao.*
+import com.moondicine.app.data.database.dao.QuestionFlagDao
 import com.moondicine.app.data.database.entity.*
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -15,7 +16,8 @@ class UserProgressRepository @Inject constructor(
     private val noteDao: NoteDao,
     private val explanationDao: ExplanationDao,
     private val statsDao: StatsDao,
-    private val userProfileDao: UserProfileDao
+    private val userProfileDao: UserProfileDao,
+    private val questionFlagDao: QuestionFlagDao
 ) {
     // User Answers
     suspend fun saveAnswer(answer: UserAnswerEntity): Long = userAnswerDao.insert(answer)
@@ -45,6 +47,22 @@ class UserProgressRepository @Inject constructor(
 
     suspend fun updateFlag(questionId: Long, isFlagged: Boolean) =
         userAnswerDao.updateFlag(questionId, isFlagged)
+
+    // Question Flags (persistent across quizzes)
+    suspend fun toggleQuestionFlag(questionId: Long) {
+        val existing = questionFlagDao.getByQuestionId(questionId)
+        if (existing != null) {
+            questionFlagDao.deleteByQuestionId(questionId)
+        } else {
+            questionFlagDao.insert(QuestionFlagEntity(questionId = questionId))
+        }
+    }
+
+    suspend fun isQuestionFlagged(questionId: Long): Boolean =
+        questionFlagDao.isQuestionFlagged(questionId)
+
+    suspend fun getFlaggedQuestionIds(): List<Long> =
+        questionFlagDao.getAll().map { it.questionId }
 
     suspend fun getTotalAnswered(): Int = userAnswerDao.getTotalAnswered()
 

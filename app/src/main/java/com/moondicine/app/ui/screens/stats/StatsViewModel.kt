@@ -57,7 +57,25 @@ class StatsViewModel @Inject constructor(
     }
 
     fun refresh() {
-        _uiState.update { it.copy(isLoading = true) }
-        loadStats()
+        viewModelScope.launch {
+            val totalQ = questionRepository.getQuestionCount()
+            val totalA = userProgressRepository.getTotalAnswered()
+            val totalC = userProgressRepository.getTotalCorrect()
+            val totalW = userProgressRepository.getTotalWrong()
+            val accuracy = if (totalA > 0) totalC.toFloat() / totalA.toFloat() else 0f
+            val stats = userProgressRepository.getAllStats()
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    totalQuestions = totalQ,
+                    totalAnswered = totalA,
+                    totalCorrect = totalC,
+                    totalWrong = totalW,
+                    accuracy = accuracy,
+                    specialtyStats = stats
+                )
+            }
+        }
     }
 }

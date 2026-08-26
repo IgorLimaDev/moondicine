@@ -13,9 +13,10 @@ import com.moondicine.app.data.database.entity.*
         QuestionNoteEntity::class,
         AIExplanationEntity::class,
         UserStatsEntity::class,
-        UserProfileEntity::class
+        UserProfileEntity::class,
+        QuestionFlagEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,4 +27,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun explanationDao(): ExplanationDao
     abstract fun statsDao(): StatsDao
     abstract fun userProfileDao(): UserProfileDao
+    abstract fun questionFlagDao(): QuestionFlagDao
 }
