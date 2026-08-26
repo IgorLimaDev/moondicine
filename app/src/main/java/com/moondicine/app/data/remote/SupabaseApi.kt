@@ -15,4 +15,10 @@ interface SupabaseApi {
         @Query("select") select: String = "*",
         @Query("order") order: String = "question_id.asc,option_letter.asc"
     ): List<SupabaseAnswerOption>
+
+    @GET("rest/v1/ai_explanations")
+    suspend fun getAiExplanations(
+        @Query("select") select: String = "*",
+        @Query("order") order: String = "question_id.asc"
+    ): List<SupabaseAiExplanation>
 }

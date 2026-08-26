@@ -1,6 +1,8 @@
 package com.moondicine.app.data.repository
 
 import android.util.Log
+import com.google.gson.Gson
+import com.moondicine.app.data.database.entity.AIExplanationEntity
 import com.moondicine.app.data.database.entity.AnswerOptionEntity
 import com.moondicine.app.data.database.entity.QuestionEntity
 import com.moondicine.app.data.remote.SupabaseApi
@@ -15,11 +17,12 @@ import javax.inject.Singleton
 @Singleton
 class SupabaseSyncRepository @Inject constructor(
     private val supabaseApi: SupabaseApi,
-    private val questionRepository: QuestionRepository
+    private val questionRepository: QuestionRepository,
+    private val explanationDao: com.moondicine.app.data.database.dao.ExplanationDao
 ) {
     companion object {
         private const val TAG = "SupabaseSync"
-        private const val SYNC_TIMEOUT_MS = 15_000L
+        private const val SYNC_TIMEOUT_MS = 30_000L
     }
 
     suspend fun syncQuestionBank(): Result<Int> = withContext(Dispatchers.IO) {
@@ -56,6 +59,36 @@ class SupabaseSyncRepository @Inject constructor(
                     }
                     syncedCount++
                 }
+
+                // Sync AI explanations
+                try {
+                    val remoteExplanations = supabaseApi.getAiExplanations()
+                    val localQuestionMap = questions.associate { remoteQ ->
+                        remoteQ.id to questionRepository.getQuestionByRemoteId(remoteQ.id)
+                    }
+                    for (remoteExplanation in remoteExplanations) {
+                        val localQuestion = localQuestionMap[remoteExplanation.questionId]
+                            ?: questionRepository.getQuestionByRemoteId(remoteExplanation.questionId)
+                        if (localQuestion != null) {
+                            val wrongReasoningJson = when (val wr = remoteExplanation.wrongReasoning) {
+                                is String -> wr
+                                is Map<*, *> -> Gson().toJson(wr)
+                                else -> "{}"
+                            }
+                            val entity = AIExplanationEntity(
+                                questionId = localQuestion.id,
+                                explanationText = remoteExplanation.explanationText,
+                                correctReasoning = remoteExplanation.correctReasoning,
+                                wrongReasoning = wrongReasoningJson
+                            )
+                            explanationDao.insert(entity)
+                        }
+                    }
+                    Log.i(TAG, "Synced ${remoteExplanations.size} AI explanations")
+                } catch (e: Exception) {
+                    Log.w(TAG, "AI explanations sync failed (non-critical)", e)
+                }
+
                 syncedCount
             }
         }

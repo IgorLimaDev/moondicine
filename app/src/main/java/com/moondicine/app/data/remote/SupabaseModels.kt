@@ -23,3 +23,12 @@ data class SupabaseAnswerOption(
     @SerializedName("option_text") val optionText: String,
     @SerializedName("is_correct") val isCorrect: Boolean
 )
+
+data class SupabaseAiExplanation(
+    val id: Long,
+    @SerializedName("question_id") val questionId: Long,
+    @SerializedName("explanation_text") val explanationText: String,
+    @SerializedName("correct_reasoning") val correctReasoning: String,
+    @SerializedName("wrong_reasoning") val wrongReasoning: Any?,
+    @SerializedName("cached_at") val cachedAt: String?
+)
