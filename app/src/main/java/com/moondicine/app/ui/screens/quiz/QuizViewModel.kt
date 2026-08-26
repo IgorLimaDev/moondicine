@@ -70,7 +70,7 @@ class QuizViewModel @Inject constructor(
                     val examQuestions = if (isInfiniteMode) {
                         questionRepository.getQuestionsByExamSource(examSource)
                     } else {
-                        val unanswered = questionRepository.getUnansweredByExamSource(examSource)
+                        val unanswered = questionRepository.getUnansweredByExamSource(examSource, 0)
                         if (questionCount > 0) unanswered.shuffled().take(questionCount) else unanswered
                     }
                     examQuestions
