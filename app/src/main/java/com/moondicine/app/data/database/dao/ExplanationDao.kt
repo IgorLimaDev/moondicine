@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ExplanationDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun insert(explanation: AIExplanationEntity): Long
 
     @Query("SELECT * FROM ai_explanations WHERE questionId = :questionId LIMIT 1")

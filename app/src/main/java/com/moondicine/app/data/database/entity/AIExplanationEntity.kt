@@ -15,7 +15,7 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["questionId"])]
+    indices = [Index(value = ["questionId"], unique = true)]
 )
 data class AIExplanationEntity(
     @PrimaryKey(autoGenerate = true)

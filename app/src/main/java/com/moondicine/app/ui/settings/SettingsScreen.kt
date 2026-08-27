@@ -275,7 +275,7 @@ fun SettingsScreen(
                 Text(
                     "Isso irá apagar todas as questões baixadas localmente. " +
                     "O app irá baixar novamente todas as questões do Supabase.\n\n" +
-                    "Seu histórico de respostas e estatísticas serão mantidos."
+                    "ATENÇÃO: Seu histórico de respostas e estatísticas também serão apagados."
                 )
             },
             confirmButton = {

@@ -25,7 +25,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "moondice_database"
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
     }
 
@@ -77,6 +77,19 @@ object DatabaseModule {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("ALTER TABLE answer_options ADD COLUMN remoteId INTEGER")
             database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_answer_options_remoteId ON answer_options(remoteId)")
+        }
+    }
+
+    private val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Deduplicate any existing duplicate explanations before adding the unique index
+            database.execSQL("""
+                DELETE FROM ai_explanations
+                WHERE id NOT IN (
+                    SELECT MIN(id) FROM ai_explanations GROUP BY questionId
+                )
+            """)
+            database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_ai_explanations_questionId ON ai_explanations(questionId)")
         }
     }
 }
