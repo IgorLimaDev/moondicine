@@ -75,7 +75,10 @@ class SupabaseSyncRepository @Inject constructor(
                                 is Map<*, *> -> Gson().toJson(wr)
                                 else -> "{}"
                             }
+                            // Look up existing explanation by questionId so @Upsert can find and update it
+                            val existing = explanationDao.getByQuestionId(localQuestion.id)
                             val entity = AIExplanationEntity(
+                                id = existing?.id ?: 0L,
                                 questionId = localQuestion.id,
                                 explanationText = remoteExplanation.explanationText,
                                 correctReasoning = remoteExplanation.correctReasoning,
