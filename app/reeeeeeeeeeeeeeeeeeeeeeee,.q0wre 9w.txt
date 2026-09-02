@@ -1,4 +1,4 @@
 git add .
 git commit -m "Review of questions numbers not updating in homescreen, some explanations not fetching"
-git tag v1.0.22
-git push origin main v1.0.22p0
+git tag v1.0.24
+git push origin main v1.0.24

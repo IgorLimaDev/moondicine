@@ -67,18 +67,18 @@ class QuizViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val questions = if (examSource != "all") {
-                    val examQuestions = if (isInfiniteMode) {
-                        questionRepository.getQuestionsByExamSource(examSource)
+                    if (isInfiniteMode) {
+                        // Infinite mode from exam browser: pull from ALL exams and shuffle
+                        questionRepository.getAllAvailableQuestions().shuffled()
                     } else {
                         val unanswered = questionRepository.getUnansweredByExamSource(examSource, 0)
                         if (questionCount > 0) unanswered.shuffled().take(questionCount) else unanswered
                     }
-                    examQuestions
                 } else {
                     when (quizType) {
                         "quick" -> {
                             if (isInfiniteMode) {
-                                questionRepository.getAllAvailableQuestions()
+                                questionRepository.getAllAvailableQuestions().shuffled()
                             } else {
                                 questionRepository.getUnansweredQuestions(questionCount)
                             }
@@ -86,13 +86,13 @@ class QuizViewModel @Inject constructor(
                         "specialty" -> {
                             if (specialtyFilter != "all") {
                                 if (isInfiniteMode) {
-                                    questionRepository.getAllBySpecialty(specialtyFilter)
+                                    questionRepository.getAllBySpecialty(specialtyFilter).shuffled()
                                 } else {
                                     questionRepository.getUnansweredBySpecialty(specialtyFilter, questionCount)
                                 }
                             } else {
                                 if (isInfiniteMode) {
-                                    questionRepository.getAllAvailableQuestions()
+                                    questionRepository.getAllAvailableQuestions().shuffled()
                                 } else {
                                     questionRepository.getUnansweredQuestions(questionCount)
                                 }
@@ -100,11 +100,11 @@ class QuizViewModel @Inject constructor(
                         }
                         "weak" -> {
                             val missedIds = userProgressRepository.getMostMissedQuestionIds(questionCount)
-                            missedIds.mapNotNull { questionRepository.getQuestionById(it.questionId) }
+                            missedIds.mapNotNull { questionRepository.getQuestionById(it.questionId) }.shuffled()
                         }
                         "exam" -> {
                             if (isInfiniteMode) {
-                                questionRepository.getAllAvailableQuestions()
+                                questionRepository.getAllAvailableQuestions().shuffled()
                             } else {
                                 questionRepository.getUnansweredQuestions(questionCount)
                             }
