@@ -1,4 +1,4 @@
 git add .
-git commit -m "Changed infinite mode with mix of exams"
-git tag v1.0.25
-git push origin main v1.0.25
+git commit -m "fixed build"
+git tag v1.0.28
+git push origin main v1.0.28
