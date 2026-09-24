@@ -5,7 +5,9 @@ import com.google.gson.Gson
 import com.moondicine.app.data.database.entity.AIExplanationEntity
 import com.moondicine.app.data.database.entity.AnswerOptionEntity
 import com.moondicine.app.data.database.entity.QuestionEntity
+import com.moondicine.app.data.remote.SupabaseAnswerOption
 import com.moondicine.app.data.remote.SupabaseApi
+import com.moondicine.app.data.remote.SupabaseAiExplanation
 import com.moondicine.app.data.remote.SupabaseQuestion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,14 +24,15 @@ class SupabaseSyncRepository @Inject constructor(
 ) {
     companion object {
         private const val TAG = "SupabaseSync"
-        private const val SYNC_TIMEOUT_MS = 30_000L
+        private const val SYNC_TIMEOUT_MS = 60_000L
+        private const val PAGE_SIZE = 1000
     }
 
     suspend fun syncQuestionBank(): Result<Int> = withContext(Dispatchers.IO) {
         val result = withTimeoutOrNull(SYNC_TIMEOUT_MS) {
             runCatching {
-                val questions = supabaseApi.getQuestions()
-                val options = supabaseApi.getAnswerOptions()
+                val questions = fetchQuestions()
+                val options = fetchAnswerOptions()
                 val allowedQuestionIds = questions.map { it.id }.toSet()
                 val optionsByQuestion = options
                     .filter { it.questionId in allowedQuestionIds }
@@ -41,7 +44,9 @@ class SupabaseSyncRepository @Inject constructor(
                     val localId = if (localQuestion == null) {
                         questionRepository.insertQuestion(remoteQuestion.toLocal())
                     } else {
+                        // @Upsert returns -1 on update (conflict), so use the known local ID
                         questionRepository.insertQuestion(remoteQuestion.toLocal(id = localQuestion.id))
+                        localQuestion.id
                     }
 
                     for (option in optionsByQuestion[remoteQuestion.id].orEmpty()) {
@@ -62,7 +67,7 @@ class SupabaseSyncRepository @Inject constructor(
 
                 // Sync AI explanations
                 try {
-                    val remoteExplanations = supabaseApi.getAiExplanations()
+                    val remoteExplanations = fetchAiExplanations()
                     val localQuestionMap = questions.associate { remoteQ ->
                         remoteQ.id to questionRepository.getQuestionByRemoteId(remoteQ.id)
                     }
@@ -110,6 +115,27 @@ class SupabaseSyncRepository @Inject constructor(
                 result
             }
         }
+    }
+
+    private suspend fun fetchQuestions(): List<SupabaseQuestion> =
+        fetchAllPages { offset -> supabaseApi.getQuestions(limit = PAGE_SIZE, offset = offset) }
+
+    private suspend fun fetchAnswerOptions(): List<SupabaseAnswerOption> =
+        fetchAllPages { offset -> supabaseApi.getAnswerOptions(limit = PAGE_SIZE, offset = offset) }
+
+    private suspend fun fetchAiExplanations(): List<SupabaseAiExplanation> =
+        fetchAllPages { offset -> supabaseApi.getAiExplanations(limit = PAGE_SIZE, offset = offset) }
+
+    private suspend fun <T> fetchAllPages(fetchPage: suspend (offset: Int) -> List<T>): List<T> {
+        val all = mutableListOf<T>()
+        var offset = 0
+        while (true) {
+            val page = fetchPage(offset)
+            all += page
+            if (page.size < PAGE_SIZE) break
+            offset += PAGE_SIZE
+        }
+        return all
     }
 }
 
